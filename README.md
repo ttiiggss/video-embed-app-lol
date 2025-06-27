@@ -69,6 +69,8 @@ npm run build
 - `tt0903747` - Breaking Bad
 - `tt2560140` - Attack on Titan
 - `tt0386676` - The Office
+- `tt0098904` - Seinfeld
+- `tt0264235` - Curb Your Enthusiasm
 
 ## API Integration
 
@@ -90,4 +92,4 @@ The app is built with modern web standards and follows React best practices:
 
 ---
 
-⚡ **Powered by Vidsrc**
+⚡ **Powered by Vidsrc** **Vibe Coded**

@@ -327,7 +327,7 @@ function App() {
           </div>
         )}
         
-        <footer style={{marginTop: '4rem', padding: '2rem', textAlign: 'center', color: '#888', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
+        <footer className="app-footer">
           ⚡- WoSTR@coinos.io
           <br />
           bc1qdsz7h8ktn6zfu8el07jehul654x55l5j7ymqxk
