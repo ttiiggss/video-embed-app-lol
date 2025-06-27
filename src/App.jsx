@@ -15,35 +15,50 @@ function App() {
   const [isHighResBackground, setIsHighResBackground] = useState(false)
 
   const VIDSRC_BASE = 'https://vidsrc.xyz'
+  const CORS_PROXY = 'https://api.allorigins.win/raw?url='
 
-  // Function to check if image meets minimum resolution requirements
-  const checkImageResolution = (imageUrl) => {
+  // Function to convert image to data URL for CORS-free usage
+  const imageToDataUrl = (imageUrl) => {
     return new Promise((resolve) => {
       const img = new Image()
+      img.crossOrigin = 'anonymous'
       img.onload = () => {
-        const isHighRes = img.width >= 1024 && img.height >= 1024
-        console.log(`Image dimensions: ${img.width}x${img.height}, High-res: ${isHighRes}`)
-        resolve({ url: imageUrl, isHighRes, width: img.width, height: img.height })
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        canvas.width = img.width
+        canvas.height = img.height
+        ctx.drawImage(img, 0, 0)
+        try {
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
+          resolve({
+            dataUrl,
+            width: img.width,
+            height: img.height,
+            isHighRes: img.width >= 1024 && img.height >= 1024
+          })
+        } catch (err) {
+          resolve(null)
+        }
       }
       img.onerror = () => resolve(null)
-      img.src = imageUrl
+      img.src = CORS_PROXY + encodeURIComponent(imageUrl)
     })
   }
 
   // Function to try getting higher resolution versions of poster URLs
   const enhancePosterUrl = (originalUrl) => {
-    if (!originalUrl || originalUrl === 'N/A') return null
+    if (!originalUrl || originalUrl === 'N/A') return []
     
     // Try to enhance OMDb poster URLs to get higher resolution versions
     const urls = [
-      // Original URL
-      originalUrl,
-      // Try removing size constraints that might be in the URL
-      originalUrl.replace(/SX\d+/, 'SX2000').replace(/SY\d+/, 'SY2000'),
-      // Try common high-res patterns
+      // Try common high-res patterns first
       originalUrl.replace(/\._V1_.*\.jpg/, '._V1_QL100_UX2000_.jpg'),
       originalUrl.replace(/\._V1_.*\.jpg/, '._V1_SX2000.jpg'),
       originalUrl.replace(/\._V1_.*\.jpg/, '._V1_UX2000_CR0,0,2000,3000_AL_.jpg'),
+      // Try removing size constraints
+      originalUrl.replace(/SX\d+/, 'SX2000').replace(/SY\d+/, 'SY2000'),
+      // Original URL as fallback
+      originalUrl,
     ]
     
     return urls
@@ -55,32 +70,20 @@ function App() {
 
     const urlVariants = enhancePosterUrl(posterUrl)
     
-    // First try to find a high-res version
+    // Try each URL variant until we find one that works
     for (const url of urlVariants) {
       try {
-        const result = await checkImageResolution(url)
-        if (result && result.isHighRes) {
-          console.log(`Using high-res background: ${result.url}`)
-          setBackgroundImage(result.url)
-          setIsHighResBackground(true)
+        console.log(`Trying to load: ${url}`)
+        const result = await imageToDataUrl(url)
+        if (result) {
+          console.log(`Successfully loaded: ${url} (${result.width}x${result.height})`)
+          setBackgroundImage(result.dataUrl)
+          setIsHighResBackground(result.isHighRes)
           return
         }
       } catch (err) {
-        console.log(`Failed to check resolution for: ${url}`)
+        console.log(`Failed to load: ${url}`)
       }
-    }
-    
-    // If no high-res version found, use original with zoom-out scaling
-    try {
-      const result = await checkImageResolution(posterUrl)
-      if (result) {
-        console.log(`Using low-res background with zoom-out: ${result.url} (${result.width}x${result.height})`)
-        setBackgroundImage(result.url)
-        setIsHighResBackground(false)
-        return
-      }
-    } catch (err) {
-      console.log(`Failed to load original poster: ${posterUrl}`)
     }
     
     console.log('No usable poster found')
@@ -124,11 +127,8 @@ function App() {
         const postersAvailable = results.filter(movie => movie.Poster && movie.Poster !== 'N/A')
         
         if (postersAvailable.length > 0) {
-          // Try each poster until we find a usable one
-          for (const movie of postersAvailable) {
-            await setBackgroundWithScaling(movie.Poster)
-            break // Use the first available poster
-          }
+          // Use the first available poster
+          await setBackgroundWithScaling(postersAvailable[0].Poster)
         }
       } else {
         setError(data.Error || 'No results found')
@@ -193,11 +193,9 @@ function App() {
     }}>
       {/* Background overlay for better readability */}
       <div className="background-overlay"></div>
-    <div className="App">
-      <h1>🎬 Vidsrc Corny Flicks </h1>
-      <p>Search by title or IMDB ID using <a href="https://vidsrc.xyz" target="_blank" rel="noopener noreferrer">Vidsrc API</a></p
+      
       <div className="content-wrapper">
-        <h1>🎬 Video Embed App</h1>
+        <h1>🎬 Vidsrc Corny Flicks</h1>
         <p>Search by title or IMDB ID using <a href="https://vidsrc.xyz" target="_blank" rel="noopener noreferrer">Vidsrc API</a></p>
         
         <div className="nav-container">
@@ -359,4 +357,6 @@ function App() {
     </div>
   )
 }
+
+export default App
 
