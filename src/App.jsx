@@ -163,7 +163,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>🎬 Video Embed App</h1>
+      <h1>🎬 CornyFlicks - Watch what *you* want</h1>
       <p>Search by IMDB ID using <a href="https://vidsrc.me/api/" target="_blank" rel="noopener noreferrer">Vidsrc API</a></p>
       
       <div className="nav-container">
@@ -230,7 +230,7 @@ function App() {
       )}
       
       <footer style={{marginTop: '4rem', padding: '2rem', textAlign: 'center', color: '#888', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
-        ⚡tigs@coinos.io
+        ⚡WoSTR@coinos.io
       </footer>
       
       <div style={{textAlign: 'center', padding: '1rem', fontSize: '0.9rem', color: '#666', fontStyle: 'italic'}}>
