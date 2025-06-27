@@ -12,81 +12,62 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [searchMode, setSearchMode] = useState('imdb') // 'imdb' or 'title'
   const [backgroundImage, setBackgroundImage] = useState('')
-  const [isHighResBackground, setIsHighResBackground] = useState(false)
 
   const VIDSRC_BASE = 'https://vidsrc.xyz'
-  const CORS_PROXY = 'https://api.allorigins.win/raw?url='
 
-  // Function to convert image to data URL for CORS-free usage
-  const imageToDataUrl = (imageUrl) => {
+  // Function to check if image meets minimum resolution requirements
+  const checkImageResolution = (imageUrl) => {
     return new Promise((resolve) => {
       const img = new Image()
-      img.crossOrigin = 'anonymous'
       img.onload = () => {
-        const canvas = document.createElement('canvas')
-        const ctx = canvas.getContext('2d')
-        canvas.width = img.width
-        canvas.height = img.height
-        ctx.drawImage(img, 0, 0)
-        try {
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
-          resolve({
-            dataUrl,
-            width: img.width,
-            height: img.height,
-            isHighRes: img.width >= 1024 && img.height >= 1024
-          })
-        } catch (err) {
-          resolve(null)
-        }
+        const isHighRes = img.width >= 1024 && img.height >= 1024
+        console.log(`Image dimensions: ${img.width}x${img.height}, High-res: ${isHighRes}`)
+        resolve(isHighRes ? imageUrl : null)
       }
       img.onerror = () => resolve(null)
-      img.src = CORS_PROXY + encodeURIComponent(imageUrl)
+      img.src = imageUrl
     })
   }
 
   // Function to try getting higher resolution versions of poster URLs
   const enhancePosterUrl = (originalUrl) => {
-    if (!originalUrl || originalUrl === 'N/A') return []
+    if (!originalUrl || originalUrl === 'N/A') return null
     
     // Try to enhance OMDb poster URLs to get higher resolution versions
     const urls = [
-      // Try common high-res patterns first
+      // Original URL
+      originalUrl,
+      // Try removing size constraints that might be in the URL
+      originalUrl.replace(/SX\d+/, 'SX2000').replace(/SY\d+/, 'SY2000'),
+      // Try common high-res patterns
       originalUrl.replace(/\._V1_.*\.jpg/, '._V1_QL100_UX2000_.jpg'),
       originalUrl.replace(/\._V1_.*\.jpg/, '._V1_SX2000.jpg'),
       originalUrl.replace(/\._V1_.*\.jpg/, '._V1_UX2000_CR0,0,2000,3000_AL_.jpg'),
-      // Try removing size constraints
-      originalUrl.replace(/SX\d+/, 'SX2000').replace(/SY\d+/, 'SY2000'),
-      // Original URL as fallback
-      originalUrl,
     ]
     
     return urls
   }
 
-  // Function to find and set background image with appropriate scaling
-  const setBackgroundWithScaling = async (posterUrl) => {
+  // Function to find and set high-resolution background image
+  const setHighResBackground = async (posterUrl) => {
     if (!posterUrl || posterUrl === 'N/A') return
 
     const urlVariants = enhancePosterUrl(posterUrl)
     
-    // Try each URL variant until we find one that works
     for (const url of urlVariants) {
       try {
-        console.log(`Trying to load: ${url}`)
-        const result = await imageToDataUrl(url)
-        if (result) {
-          console.log(`Successfully loaded: ${url} (${result.width}x${result.height})`)
-          setBackgroundImage(result.dataUrl)
-          setIsHighResBackground(result.isHighRes)
+        const highResUrl = await checkImageResolution(url)
+        if (highResUrl) {
+          console.log(`Using high-res background: ${highResUrl}`)
+          setBackgroundImage(highResUrl)
           return
         }
       } catch (err) {
-        console.log(`Failed to load: ${url}`)
+        console.log(`Failed to check resolution for: ${url}`)
       }
     }
     
-    console.log('No usable poster found')
+    console.log('No high-resolution version found for poster')
   }
 
   // Function to get poster for direct IMDB ID searches
@@ -96,7 +77,7 @@ function App() {
       const data = await response.json()
       
       if (data.Response === 'True' && data.Poster && data.Poster !== 'N/A') {
-        await setBackgroundWithScaling(data.Poster)
+        await setHighResBackground(data.Poster)
       }
     } catch (err) {
       console.log('Failed to fetch poster for background')
@@ -123,12 +104,15 @@ function App() {
         const results = data.Search.slice(0, 10) // Limit to 10 results
         setSearchResults(results)
         
-        // Try to find a good poster from search results
+        // Try to find a high-resolution poster from search results
         const postersAvailable = results.filter(movie => movie.Poster && movie.Poster !== 'N/A')
         
         if (postersAvailable.length > 0) {
-          // Use the first available poster
-          await setBackgroundWithScaling(postersAvailable[0].Poster)
+          // Try each poster until we find a high-res one
+          for (const movie of postersAvailable) {
+            const success = await setHighResBackground(movie.Poster)
+            if (success !== false) break // Stop at first successful high-res background
+          }
         }
       } else {
         setError(data.Error || 'No results found')
@@ -144,9 +128,9 @@ function App() {
     setImdbQuery(movie.imdbID)
     setSearchResults([])
     setSearchMode('imdb')
-    // Set selected movie poster as background with appropriate scaling
+    // Set selected movie poster as background (high-res only)
     if (movie.Poster && movie.Poster !== 'N/A') {
-      await setBackgroundWithScaling(movie.Poster)
+      await setHighResBackground(movie.Poster)
     }
   }
 
@@ -167,7 +151,7 @@ function App() {
       return
     }
     
-    // Fetch poster for background with appropriate scaling
+    // Fetch poster for background (high-res only)
     fetchPosterByImdbId(imdbId)
     
     // Create embed URL based on selected type
@@ -186,7 +170,7 @@ function App() {
   return (
     <div className="App" style={{
       backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
-      backgroundSize: isHighResBackground ? 'cover' : 'contain',
+      backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
       backgroundAttachment: 'fixed'
@@ -195,7 +179,7 @@ function App() {
       <div className="background-overlay"></div>
       
       <div className="content-wrapper">
-        <h1>🎬 Vidsrc Corny Flicks</h1>
+        <h1>🎬 Video Embed App</h1>
         <p>Search by title or IMDB ID using <a href="https://vidsrc.xyz" target="_blank" rel="noopener noreferrer">Vidsrc API</a></p>
         
         <div className="nav-container">
@@ -325,7 +309,6 @@ function App() {
             <h3>🔍 How to Use</h3>
             <p><strong>Method 1:</strong> Search by title to find movies/shows easily</p>
             <p><strong>Method 2:</strong> Enter IMDB ID directly if you know it</p>
-            <p><strong>🎯 Smart Scaling:</strong> High-res images fill screen, low-res images zoom out to fit</p>
             
             <p><strong>Popular Movie IMDB IDs:</strong></p>
             <ul style={{textAlign: 'left', maxWidth: '500px', margin: '0 auto'}}>
@@ -358,5 +341,4 @@ function App() {
   )
 }
 
-export default App
-
+export default App 
