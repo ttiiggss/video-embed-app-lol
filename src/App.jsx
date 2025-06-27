@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useState } from 'react'
 
 function App() {
@@ -119,7 +118,6 @@ function App() {
   )
 }
 
-=======
 import { useState } from 'react'
 
 function App() {
@@ -239,6 +237,4 @@ function App() {
     </div>
   )
 }
-
->>>>>>> fd93281 (vidsourcing)
 export default App 
