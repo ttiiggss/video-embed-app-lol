@@ -80,7 +80,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>🎬 Video Embed App</h1>
+      <h1>🎬 Vidsrc Corny Flicks </h1>
       <p>Search by title or IMDB ID using <a href="https://vidsrc.xyz" target="_blank" rel="noopener noreferrer">Vidsrc API</a></p>
       
       <div className="nav-container">
