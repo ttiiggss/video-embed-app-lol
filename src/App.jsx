@@ -193,7 +193,9 @@ function App() {
     }}>
       {/* Background overlay for better readability */}
       <div className="background-overlay"></div>
-      
+    <div className="App">
+      <h1>🎬 Vidsrc Corny Flicks </h1>
+      <p>Search by title or IMDB ID using <a href="https://vidsrc.xyz" target="_blank" rel="noopener noreferrer">Vidsrc API</a></p
       <div className="content-wrapper">
         <h1>🎬 Video Embed App</h1>
         <p>Search by title or IMDB ID using <a href="https://vidsrc.xyz" target="_blank" rel="noopener noreferrer">Vidsrc API</a></p>
@@ -358,4 +360,3 @@ function App() {
   )
 }
 
-export default App 
