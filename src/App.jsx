@@ -61,8 +61,8 @@ function App() {
       const response = await fetch('https://api.nostr.watch/v1/online')
       const onlineRelays = await response.json()
       
-      // Shuffle the relays for random presentation
-      const shuffledRelays = [...onlineRelays].sort(() => Math.random() - 0.5)
+      // Shuffle the relays for random presentation and limit to 50
+      const shuffledRelays = [...onlineRelays].sort(() => Math.random() - 0.5).slice(0, 50)
       
       // Create relay status object
       const status = {}
@@ -536,7 +536,7 @@ function App() {
     <div className="relay-page">
       <div className="relay-header">
         <h2>🌐 Nostr Relay Configuration</h2>
-        <p>Choose up to 10 relays from {availableRelays.length} online relays (randomly ordered)</p>
+        <p>Choose up to 10 relays from {availableRelays.length} randomly selected online relays</p>
         <div className="relay-controls">
           <button onClick={fetchOnlineRelays} className="refresh-btn" disabled={loadingRelays}>
             {loadingRelays ? '⏳ Loading...' : '🔄 Refresh List'}
@@ -563,7 +563,7 @@ function App() {
       </div>
 
       <div className="available-relays">
-        <h3>📡 Available Online Relays</h3>
+        <h3>📡 Available Online Relays (50 Random)</h3>
         {loadingRelays ? (
           <div className="loading-relays">Loading relays...</div>
         ) : (
