@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { SimplePool, nip19, nip05, getEventHash, getSignature } from 'nostr-tools'
+import { SimplePool, nip19, nip05, getEventHash } from 'nostr-tools'
 
 function App() {
   const [imdbQuery, setImdbQuery] = useState('')
