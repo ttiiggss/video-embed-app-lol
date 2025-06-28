@@ -163,8 +163,6 @@ h1 {
   box-shadow: 0 4px 12px rgba(155, 89, 182, 0.4);
 }
 
-
-
 .profile-info {
   display: flex;
   flex-direction: column;
@@ -318,8 +316,6 @@ h1 {
   }
 }
 
-
-
 .profile-picture[src=""] {
   display: none;
 }
@@ -367,8 +363,6 @@ h1 {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
-
-
 
 /* Improved accessibility */
 .profile-picture:focus,
@@ -1851,4 +1845,204 @@ h1 {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
   }
+}
+
+/* Enhanced relay removal functionality */
+.selected-relay-item.removable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.selected-relay-item.removable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.selected-relay-item.removable.connected:hover {
+  box-shadow: 0 6px 20px rgba(39, 174, 96, 0.25);
+}
+
+.selected-relay-item.last-relay {
+  border: 2px solid rgba(230, 126, 34, 0.3);
+  background: linear-gradient(145deg, #fef9e7, #fcf4dd);
+}
+
+.selected-relay-item.last-relay .relay-header::after {
+  content: "⚠️ Last relay - cannot remove";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: rgba(230, 126, 34, 0.9);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.selected-relay-item.last-relay:hover .relay-header::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.relay-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.remove-relay-btn {
+  background: linear-gradient(145deg, #e74c3c, #c0392b);
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(231, 76, 60, 0.3);
+  opacity: 0.7;
+  transform: scale(0.9);
+}
+
+.remove-relay-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.5);
+  background: linear-gradient(145deg, #c0392b, #e74c3c);
+}
+
+.selected-relay-item:hover .remove-relay-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Enhanced visual feedback for removable state */
+.selected-relay-item.removable::before {
+  content: "🗑️ Click to remove";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  background: rgba(52, 152, 219, 0.9);
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.selected-relay-item.removable:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Override hover tooltip when hovering over remove button */
+.remove-relay-btn:hover ~ .selected-relay-item.removable::before,
+.selected-relay-item.removable:hover .remove-relay-btn:hover::before {
+  opacity: 0;
+}
+
+/* Enhanced button positioning */
+.relay-header {
+  min-height: 32px;
+  align-items: flex-start;
+}
+
+.default-badge {
+  background: linear-gradient(145deg, #27ae60, #2ecc71);
+  color: white;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  align-self: center;
+}
+
+/* Mobile responsiveness for remove functionality */
+@media (max-width: 768px) {
+  .selected-relay-item.removable::before {
+    display: none;
+  }
+  
+  .selected-relay-item.last-relay .relay-header::after {
+    display: none;
+  }
+  
+  .remove-relay-btn {
+    opacity: 1;
+    transform: scale(1);
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+  }
+  
+  .relay-header {
+    gap: 0.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .remove-relay-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 0.8rem;
+  }
+  
+  .relay-header {
+    min-height: 28px;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .selected-relay-item {
+    padding: 1rem 0.8rem;
+  }
+}
+
+/* Improved accessibility */
+.remove-relay-btn:focus {
+  outline: 3px solid rgba(231, 76, 60, 0.5);
+  outline-offset: 2px;
+}
+
+.selected-relay-item.removable:focus-within {
+  outline: 2px solid rgba(52, 152, 219, 0.5);
+  outline-offset: 2px;
+}
+
+/* Enhanced visual states */
+.selected-relay-item.removable {
+  border: 2px solid transparent;
+}
+
+.selected-relay-item.removable:hover {
+  border-color: rgba(52, 152, 219, 0.3);
+}
+
+.selected-relay-item.removable.connected {
+  border-color: #27ae60;
+}
+
+.selected-relay-item.removable.connected:hover {
+  border-color: rgba(39, 174, 96, 0.6);
 }

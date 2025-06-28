@@ -111,6 +111,17 @@ function App() {
     setError('')
   }
 
+  // Remove relay from selected list
+  const removeRelay = (relayUrl) => {
+    // Don't allow removing the last relay
+    if (selectedRelays.length <= 1) {
+      setError('At least one relay must be selected')
+      return
+    }
+    setSelectedRelays(prev => prev.filter(r => r !== relayUrl))
+    setError('')
+  }
+
   // Reset to default relay
   const resetToDefault = () => {
     setSelectedRelays([DEFAULT_RELAY])
@@ -767,15 +778,27 @@ function App() {
              const isConnected = pingData?.status === 'connected'
              const pingTime = pingData?.ping || -1
              
-             return (
-               <div key={relay} className={`selected-relay-item ${isConnected ? 'connected' : ''}`}>
-                 <div className="relay-info">
-                   <div className="relay-header">
-                     <span className={`relay-url ${relay === DEFAULT_RELAY ? 'default-relay' : ''}`}>
-                       {relay}
-                     </span>
-                     {relay === DEFAULT_RELAY && <span className="default-badge">DEFAULT</span>}
-                   </div>
+                           return (
+                <div key={relay} className={`selected-relay-item ${isConnected ? 'connected' : ''} ${selectedRelays.length > 1 ? 'removable' : 'last-relay'}`}>
+                  <div className="relay-info">
+                    <div className="relay-header">
+                      <span className={`relay-url ${relay === DEFAULT_RELAY ? 'default-relay' : ''}`}>
+                        {relay}
+                      </span>
+                      {relay === DEFAULT_RELAY && <span className="default-badge">DEFAULT</span>}
+                      {selectedRelays.length > 1 && (
+                        <button 
+                          className="remove-relay-btn"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            removeRelay(relay)
+                          }}
+                          title="Remove relay"
+                        >
+                          ❌
+                        </button>
+                      )}
+                    </div>
                    <div className="relay-stats">
                      <div className="connection-status">
                        <span className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}>
