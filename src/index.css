@@ -875,15 +875,46 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.8rem;
+  padding: 1.2rem;
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  margin-bottom: 0.8rem;
 }
 
-.default-relay {
-  font-weight: bold;
+.selected-relay-item.connected {
+  border-color: #27ae60;
+  background: linear-gradient(145deg, #e8f8f5, #d5f4e6);
+  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.15);
+}
+
+.relay-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.relay-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.relay-url {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.relay-url.default-relay {
   color: #27ae60;
+  font-weight: bold;
 }
 
 .default-badge {
@@ -891,8 +922,554 @@ h1 {
   color: white;
   padding: 0.2rem 0.6rem;
   border-radius: 12px;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.relay-stats {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-indicator {
+  font-size: 0.8rem;
+}
+
+.status-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.status-indicator.connected + .status-text {
+  color: #27ae60;
+}
+
+.status-indicator.disconnected + .status-text {
+  color: #e74c3c;
+}
+
+.ping-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+}
+
+.ping-time {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.ping-quality {
+  font-size: 0.75rem;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Signal Bars Component */
+.signal-container {
+  display: flex;
+  align-items: center;
+  padding-left: 1rem;
+}
+
+.signal-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 24px;
+  width: 40px;
+}
+
+.signal-bar {
+  width: 6px;
+  background: #ecf0f1;
+  border-radius: 1px;
+  transition: all 0.3s ease;
+}
+
+.signal-bar:nth-child(1) { height: 20%; }
+.signal-bar:nth-child(2) { height: 40%; }
+.signal-bar:nth-child(3) { height: 60%; }
+.signal-bar:nth-child(4) { height: 80%; }
+.signal-bar:nth-child(5) { height: 100%; }
+
+/* Signal strength colors */
+.signal-bar.excellent {
+  background: linear-gradient(to top, #27ae60, #2ecc71);
+  box-shadow: 0 0 4px rgba(39, 174, 96, 0.3);
+}
+
+.signal-bar.good {
+  background: linear-gradient(to top, #f39c12, #f1c40f);
+  box-shadow: 0 0 4px rgba(243, 156, 18, 0.3);
+}
+
+.signal-bar.fair {
+  background: linear-gradient(to top, #e67e22, #f39c12);
+  box-shadow: 0 0 4px rgba(230, 126, 34, 0.3);
+}
+
+.signal-bar.poor {
+  background: linear-gradient(to top, #e74c3c, #c0392b);
+  box-shadow: 0 0 4px rgba(231, 76, 60, 0.3);
+}
+
+/* Loading animation for signal bars */
+.signal-bars.loading .signal-bar.animate {
+  background: linear-gradient(45deg, #3498db, #2980b9);
+  animation: pulse-signal 1.5s ease-in-out infinite;
+}
+
+.signal-bars.loading .signal-bar:nth-child(1) { animation-delay: 0s; }
+.signal-bars.loading .signal-bar:nth-child(2) { animation-delay: 0.1s; }
+.signal-bars.loading .signal-bar:nth-child(3) { animation-delay: 0.2s; }
+.signal-bars.loading .signal-bar:nth-child(4) { animation-delay: 0.3s; }
+.signal-bars.loading .signal-bar:nth-child(5) { animation-delay: 0.4s; }
+
+@keyframes pulse-signal {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scaleY(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1.2);
+  }
+}
+
+/* Enhanced Mobile Responsiveness */
+@media (max-width: 768px) {
+  .selected-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  
+  .test-relays-btn {
+    width: 100%;
+  }
+  
+  .selected-relay-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .relay-stats {
+    justify-content: space-between;
+  }
+  
+  .signal-container {
+    padding-left: 0;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+  
+  .relay-header {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .selected-relay-item {
+    padding: 0.8rem;
+  }
+  
+  .relay-url {
+    font-size: 0.8rem;
+  }
+  
+  .relay-stats {
+    flex-direction: column;
+    gap: 0.8rem;
+    align-items: center;
+  }
+  
+  .ping-info {
+    align-items: center;
+    text-align: center;
+  }
+}
+
+/* Enhanced status indicators */
+.status-indicator {
+  animation: none;
+}
+
+.status-indicator:contains('🔄') {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Improved contrast and readability */
+.selected-relays {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(145deg, #ecf0f1, #bdc3c7);
+  border-radius: 15px;
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.selected-relays h3 {
+  color: #2c3e50;
+  margin-bottom: 0;
+  font-size: 1.3rem;
+}
+
+/* Hover effects for better interactivity */
+.selected-relay-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.selected-relay-item.connected:hover {
+  box-shadow: 0 6px 20px rgba(39, 174, 96, 0.25);
+}
+
+/* Loading states */
+.status-text:contains('Testing') {
+  color: #3498db !important;
+  animation: fade 1.5s ease-in-out infinite;
+}
+
+@keyframes fade {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Enhanced Selected Relays Section */
+.selected-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.test-relays-btn {
+  background: linear-gradient(145deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);
+}
+
+.test-relays-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+  background: linear-gradient(145deg, #2980b9, #3498db);
+}
+
+.selected-relay-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  margin-bottom: 0.8rem;
+}
+
+.selected-relay-item.connected {
+  border-color: #27ae60;
+  background: linear-gradient(145deg, #e8f8f5, #d5f4e6);
+  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.15);
+}
+
+.relay-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.relay-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.relay-url {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.relay-url.default-relay {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.default-badge {
+  background: linear-gradient(145deg, #27ae60, #2ecc71);
+  color: white;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.relay-stats {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-indicator {
+  font-size: 0.8rem;
+}
+
+.status-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.status-indicator.connected + .status-text {
+  color: #27ae60;
+}
+
+.status-indicator.disconnected + .status-text {
+  color: #e74c3c;
+}
+
+.ping-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+}
+
+.ping-time {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.ping-quality {
+  font-size: 0.75rem;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Signal Bars Component */
+.signal-container {
+  display: flex;
+  align-items: center;
+  padding-left: 1rem;
+}
+
+.signal-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 24px;
+  width: 40px;
+}
+
+.signal-bar {
+  width: 6px;
+  background: #ecf0f1;
+  border-radius: 1px;
+  transition: all 0.3s ease;
+}
+
+.signal-bar:nth-child(1) { height: 20%; }
+.signal-bar:nth-child(2) { height: 40%; }
+.signal-bar:nth-child(3) { height: 60%; }
+.signal-bar:nth-child(4) { height: 80%; }
+.signal-bar:nth-child(5) { height: 100%; }
+
+/* Signal strength colors */
+.signal-bar.excellent {
+  background: linear-gradient(to top, #27ae60, #2ecc71);
+  box-shadow: 0 0 4px rgba(39, 174, 96, 0.3);
+}
+
+.signal-bar.good {
+  background: linear-gradient(to top, #f39c12, #f1c40f);
+  box-shadow: 0 0 4px rgba(243, 156, 18, 0.3);
+}
+
+.signal-bar.fair {
+  background: linear-gradient(to top, #e67e22, #f39c12);
+  box-shadow: 0 0 4px rgba(230, 126, 34, 0.3);
+}
+
+.signal-bar.poor {
+  background: linear-gradient(to top, #e74c3c, #c0392b);
+  box-shadow: 0 0 4px rgba(231, 76, 60, 0.3);
+}
+
+/* Loading animation for signal bars */
+.signal-bars.loading .signal-bar.animate {
+  background: linear-gradient(45deg, #3498db, #2980b9);
+  animation: pulse-signal 1.5s ease-in-out infinite;
+}
+
+.signal-bars.loading .signal-bar:nth-child(1) { animation-delay: 0s; }
+.signal-bars.loading .signal-bar:nth-child(2) { animation-delay: 0.1s; }
+.signal-bars.loading .signal-bar:nth-child(3) { animation-delay: 0.2s; }
+.signal-bars.loading .signal-bar:nth-child(4) { animation-delay: 0.3s; }
+.signal-bars.loading .signal-bar:nth-child(5) { animation-delay: 0.4s; }
+
+@keyframes pulse-signal {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scaleY(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1.2);
+  }
+}
+
+/* Enhanced Mobile Responsiveness */
+@media (max-width: 768px) {
+  .selected-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  
+  .test-relays-btn {
+    width: 100%;
+  }
+  
+  .selected-relay-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .relay-stats {
+    justify-content: space-between;
+  }
+  
+  .signal-container {
+    padding-left: 0;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+  
+  .relay-header {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .selected-relay-item {
+    padding: 0.8rem;
+  }
+  
+  .relay-url {
+    font-size: 0.8rem;
+  }
+  
+  .relay-stats {
+    flex-direction: column;
+    gap: 0.8rem;
+    align-items: center;
+  }
+  
+  .ping-info {
+    align-items: center;
+    text-align: center;
+  }
+}
+
+/* Enhanced status indicators */
+.status-indicator {
+  animation: none;
+}
+
+.status-indicator:contains('🔄') {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Improved contrast and readability */
+.selected-relays {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(145deg, #ecf0f1, #bdc3c7);
+  border-radius: 15px;
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.selected-relays h3 {
+  color: #2c3e50;
+  margin-bottom: 0;
+  font-size: 1.3rem;
+}
+
+/* Hover effects for better interactivity */
+.selected-relay-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.selected-relay-item.connected:hover {
+  box-shadow: 0 6px 20px rgba(39, 174, 96, 0.25);
+}
+
+/* Loading states */
+.status-text:contains('Testing') {
+  color: #3498db !important;
+  animation: fade 1.5s ease-in-out infinite;
+}
+
+@keyframes fade {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
 /* Available Relays Section */
@@ -954,14 +1531,6 @@ h1 {
   min-width: 24px;
 }
 
-.relay-url {
-  flex: 1;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
-  color: #2c3e50;
-  word-break: break-all;
-}
-
 .relay-status {
   display: flex;
   align-items: center;
@@ -1007,6 +1576,25 @@ h1 {
   }
 }
 
+/* Scrollbar styling for relay grid */
+.relay-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.relay-grid::-webkit-scrollbar-track {
+  background: #ecf0f1;
+  border-radius: 10px;
+}
+
+.relay-grid::-webkit-scrollbar-thumb {
+  background: linear-gradient(145deg, #bdc3c7, #95a5a6);
+  border-radius: 10px;
+}
+
+.relay-grid::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(145deg, #95a5a6, #7f8c8d);
+}
+
 /* Enhanced info box for relay info */
 .info-box p:last-child {
   margin-bottom: 0;
@@ -1032,23 +1620,4 @@ h1 {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
   }
-}
-
-/* Scrollbar styling for relay grid */
-.relay-grid::-webkit-scrollbar {
-  width: 8px;
-}
-
-.relay-grid::-webkit-scrollbar-track {
-  background: #ecf0f1;
-  border-radius: 10px;
-}
-
-.relay-grid::-webkit-scrollbar-thumb {
-  background: linear-gradient(145deg, #bdc3c7, #95a5a6);
-  border-radius: 10px;
-}
-
-.relay-grid::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(145deg, #95a5a6, #7f8c8d);
 }

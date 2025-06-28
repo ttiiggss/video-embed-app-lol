@@ -30,6 +30,8 @@ function App() {
   const [availableRelays, setAvailableRelays] = useState([])
   const [relayStatus, setRelayStatus] = useState({})
   const [loadingRelays, setLoadingRelays] = useState(false)
+  const [relayPings, setRelayPings] = useState({})
+  const [testingRelays, setTestingRelays] = useState(new Set())
 
   const VIDSRC_BASE = 'https://vidsrc.xyz'
   const DEFAULT_RELAY = 'wss://tigs.nostr1.com'
@@ -114,6 +116,131 @@ function App() {
     setSelectedRelays([DEFAULT_RELAY])
     setError('Reset to default relay: tigs.nostr1.com')
   }
+
+  // Ping relay to test connection speed
+  const pingRelay = async (relayUrl) => {
+    setTestingRelays(prev => new Set([...prev, relayUrl]))
+    
+    try {
+      const startTime = Date.now()
+      const ws = new WebSocket(relayUrl)
+      
+      return new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+          ws.close()
+          setTestingRelays(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(relayUrl)
+            return newSet
+          })
+          resolve({ ping: -1, status: 'timeout' })
+        }, 5000) // 5 second timeout
+
+        ws.onopen = () => {
+          const ping = Date.now() - startTime
+          ws.close()
+          clearTimeout(timeout)
+          setTestingRelays(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(relayUrl)
+            return newSet
+          })
+          resolve({ ping, status: 'connected' })
+        }
+
+        ws.onerror = () => {
+          ws.close()
+          clearTimeout(timeout)
+          setTestingRelays(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(relayUrl)
+            return newSet
+          })
+          resolve({ ping: -1, status: 'error' })
+        }
+      })
+    } catch (err) {
+      setTestingRelays(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(relayUrl)
+        return newSet
+      })
+      return { ping: -1, status: 'error' }
+    }
+  }
+
+  // Test all selected relays
+  const testSelectedRelays = async () => {
+    const newPings = { ...relayPings }
+    
+    for (const relay of selectedRelays) {
+      const result = await pingRelay(relay)
+      newPings[relay] = result
+    }
+    
+    setRelayPings(newPings)
+  }
+
+  // Get signal strength based on ping
+  const getSignalStrength = (ping) => {
+    if (ping === -1) return 0 // No connection
+    if (ping < 100) return 5   // Excellent
+    if (ping < 200) return 4   // Good
+    if (ping < 500) return 3   // Fair
+    if (ping < 1000) return 2  // Poor
+    return 1                   // Very poor
+  }
+
+  // Signal bar component
+  const SignalBars = ({ ping, isLoading }) => {
+    if (isLoading) {
+      return (
+        <div className="signal-bars loading">
+          <div className="signal-bar animate"></div>
+          <div className="signal-bar animate"></div>
+          <div className="signal-bar animate"></div>
+          <div className="signal-bar animate"></div>
+          <div className="signal-bar animate"></div>
+        </div>
+      )
+    }
+
+    const strength = getSignalStrength(ping)
+    const bars = []
+    
+    for (let i = 1; i <= 5; i++) {
+      const isActive = i <= strength
+      let className = 'signal-bar'
+      
+      if (isActive) {
+        if (strength >= 4) className += ' excellent'
+        else if (strength >= 3) className += ' good'
+        else if (strength >= 2) className += ' fair'
+        else className += ' poor'
+      }
+      
+      bars.push(<div key={i} className={className}></div>)
+    }
+    
+    return <div className="signal-bars">{bars}</div>
+  }
+
+  // Test relay when it's added to selected list
+  useEffect(() => {
+    const testNewRelays = async () => {
+      for (const relay of selectedRelays) {
+        if (!relayPings[relay] && !testingRelays.has(relay)) {
+          const result = await pingRelay(relay)
+          setRelayPings(prev => ({
+            ...prev,
+            [relay]: result
+          }))
+        }
+      }
+    }
+    
+    testNewRelays()
+  }, [selectedRelays])
 
   // Check for existing Nostr extension and auto-login
   useEffect(() => {
@@ -550,17 +677,59 @@ function App() {
         </div>
       </div>
 
-      <div className="selected-relays">
-        <h3>✅ Selected Relays ({selectedRelays.length}/10)</h3>
-        <div className="selected-relay-list">
-          {selectedRelays.map(relay => (
-            <div key={relay} className="selected-relay-item">
-              <span className={relay === DEFAULT_RELAY ? 'default-relay' : ''}>{relay}</span>
-              {relay === DEFAULT_RELAY && <span className="default-badge">DEFAULT</span>}
-            </div>
-          ))}
-        </div>
-      </div>
+             <div className="selected-relays">
+         <div className="selected-header">
+           <h3>✅ Selected Relays ({selectedRelays.length}/10)</h3>
+           <button onClick={testSelectedRelays} className="test-relays-btn">
+             🔄 Test All Connections
+           </button>
+         </div>
+         <div className="selected-relay-list">
+           {selectedRelays.map(relay => {
+             const pingData = relayPings[relay]
+             const isLoading = testingRelays.has(relay)
+             const isConnected = pingData?.status === 'connected'
+             const pingTime = pingData?.ping || -1
+             
+             return (
+               <div key={relay} className={`selected-relay-item ${isConnected ? 'connected' : ''}`}>
+                 <div className="relay-info">
+                   <div className="relay-header">
+                     <span className={`relay-url ${relay === DEFAULT_RELAY ? 'default-relay' : ''}`}>
+                       {relay}
+                     </span>
+                     {relay === DEFAULT_RELAY && <span className="default-badge">DEFAULT</span>}
+                   </div>
+                   <div className="relay-stats">
+                     <div className="connection-status">
+                       <span className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}>
+                         {isLoading ? '🔄' : isConnected ? '🟢' : '🔴'}
+                       </span>
+                       <span className="status-text">
+                         {isLoading ? 'Testing...' : isConnected ? 'Connected' : 'Disconnected'}
+                       </span>
+                     </div>
+                     {pingTime > 0 && (
+                       <div className="ping-info">
+                         <span className="ping-time">{pingTime}ms</span>
+                         <span className="ping-quality">
+                           {pingTime < 100 ? 'Excellent' : 
+                            pingTime < 200 ? 'Good' : 
+                            pingTime < 500 ? 'Fair' : 
+                            pingTime < 1000 ? 'Poor' : 'Very Poor'}
+                         </span>
+                       </div>
+                     )}
+                   </div>
+                 </div>
+                 <div className="signal-container">
+                   <SignalBars ping={pingTime} isLoading={isLoading} />
+                 </div>
+               </div>
+             )
+           })}
+         </div>
+       </div>
 
       <div className="available-relays">
         <h3>📡 Available Online Relays (50 Random)</h3>
