@@ -261,7 +261,54 @@ function App() {
     if (storedUser) {
       const user = JSON.parse(storedUser)
       setNostrUser(user)
+      
+      // Refresh profile data if we have a connection and no recent profile data
+      if (user.pubkey && nostrPool && (!user.profile.name || !user.profile.picture)) {
+        const profileData = await fetchUserProfile(user.pubkey)
+        if (profileData && (profileData.name || profileData.picture)) {
+          const updatedUser = {
+            ...user,
+            profile: {
+              ...profileData,
+              loading: false
+            }
+          }
+          setNostrUser(updatedUser)
+          localStorage.setItem('nostr_user', JSON.stringify(updatedUser))
+        }
+      }
     }
+  }
+
+  // Fetch user profile from Nostr relays
+  const fetchUserProfile = async (pubkey) => {
+    if (!nostrPool) return null
+    
+    try {
+      const filter = {
+        kinds: [0], // Profile metadata
+        authors: [pubkey],
+        limit: 1
+      }
+
+      const events = await nostrPool.querySync(selectedRelays, filter)
+      
+      if (events.length > 0) {
+        const profileEvent = events[0]
+        const profileData = JSON.parse(profileEvent.content)
+        
+        return {
+          name: profileData.display_name || profileData.name || null,
+          picture: profileData.picture || null,
+          about: profileData.about || null,
+          nip05: profileData.nip05 || null
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch profile:', err)
+    }
+    
+    return null
   }
 
   // NIP-07 Browser Extension Authentication
@@ -275,18 +322,47 @@ function App() {
       const pubkey = await window.nostr.getPublicKey()
       const npub = nip19.npubEncode(pubkey)
       
-      // Try to get profile info
-      let profile = { name: npub.slice(0, 12) + '...', picture: null }
-      
+      // Create initial user object
       const user = {
         pubkey,
         npub,
-        profile
+        profile: { 
+          name: npub.slice(0, 12) + '...', 
+          picture: null,
+          about: null,
+          nip05: null,
+          loading: true
+        }
       }
       
       setNostrUser(user)
       localStorage.setItem('nostr_user', JSON.stringify(user))
       setError('')
+
+      // Fetch full profile data
+      const profileData = await fetchUserProfile(pubkey)
+      if (profileData && (profileData.name || profileData.picture)) {
+        const updatedUser = {
+          ...user,
+          profile: {
+            ...profileData,
+            loading: false
+          }
+        }
+        setNostrUser(updatedUser)
+        localStorage.setItem('nostr_user', JSON.stringify(updatedUser))
+      } else {
+        // If no profile found, update loading state
+        const updatedUser = {
+          ...user,
+          profile: {
+            ...user.profile,
+            loading: false
+          }
+        }
+        setNostrUser(updatedUser)
+        localStorage.setItem('nostr_user', JSON.stringify(updatedUser))
+      }
     } catch (err) {
       setError('Failed to connect to Nostr extension: ' + err.message)
     }
@@ -803,16 +879,49 @@ function App() {
             </button>
           ) : (
             <div className="nostr-user-info">
-              <span>Connected: {nostrUser.profile.name}</span>
-              <button onClick={() => setShowBookmarks(!showBookmarks)} className="bookmarks-btn">
-                📚 My Bookmarks ({userBookmarks.length}/10)
-              </button>
-              <button onClick={() => {setShowDiscovery(!showDiscovery); if (!showDiscovery) loadAllUsersBookmarks()}} className="discovery-btn">
-                🌐 Discover
-              </button>
-              <button onClick={disconnectNostr} className="nostr-disconnect-btn">
-                🚪 Logout
-              </button>
+                              <div className="user-profile">
+                 {nostrUser.profile.picture ? (
+                   <img 
+                     src={nostrUser.profile.picture} 
+                     alt="Profile" 
+                     className="profile-picture"
+                     onError={(e) => {
+                       e.target.style.display = 'none'
+                       e.target.nextSibling.style.display = 'flex'
+                     }}
+                   />
+                 ) : (
+                   <div className="profile-avatar">
+                     👤
+                   </div>
+                 )}
+                <div className="profile-info">
+                  <span className="profile-name">
+                    {nostrUser.profile.loading ? (
+                      <>
+                        <span className="loading-text">Loading profile...</span>
+                        <div className="loading-spinner"></div>
+                      </>
+                    ) : (
+                      nostrUser.profile.name || nostrUser.npub.slice(0, 12) + '...'
+                    )}
+                  </span>
+                  {nostrUser.profile.nip05 && (
+                    <span className="nip05-identifier">✓ {nostrUser.profile.nip05}</span>
+                  )}
+                </div>
+              </div>
+              <div className="user-actions">
+                <button onClick={() => setShowBookmarks(!showBookmarks)} className="bookmarks-btn">
+                  📚 My Bookmarks ({userBookmarks.length}/10)
+                </button>
+                <button onClick={() => {setShowDiscovery(!showDiscovery); if (!showDiscovery) loadAllUsersBookmarks()}} className="discovery-btn">
+                  🌐 Discover
+                </button>
+                <button onClick={disconnectNostr} className="nostr-disconnect-btn">
+                  🚪 Logout
+                </button>
+              </div>
             </div>
           )}
         </div>
